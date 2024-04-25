@@ -1,11 +1,19 @@
+import enum
+
 from advanced_alchemy.base import UUIDBase
-from advanced_alchemy.repository import SQLAlchemyAsyncRepository
-from advanced_alchemy.service import SQLAlchemyAsyncRepositoryService
+from sqlalchemy import Enum
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, mapped_column
+
+Base = UUIDBase
 
 
-class City(UUIDBase):
+class Gender(enum.Enum):
+    Male = "Male"
+    Female = "Female"
+
+
+class City(Base):
     __tablename__ = "city"
 
     name: Mapped[str]
@@ -19,12 +27,17 @@ class City(UUIDBase):
         )
 
 
-class CityRepository(SQLAlchemyAsyncRepository[City]):
-    model_type = City
+class Customer(Base):
+    __tablename__ = "customer"
 
+    gender: Mapped[Enum] = mapped_column(
+        Enum(Gender, create_constraint=True, validate_strings=True)
+    )
+    age: Mapped[int]
+    month_income: Mapped[int]
 
-class CityService(SQLAlchemyAsyncRepositoryService[City]):
-    repository_type = CityRepository
+    def __str__(self) -> str:
+        return f"{self.gender}, {self.age} years, ${self.month_income}"
 
 
 db_engine = create_async_engine("sqlite+aiosqlite:///test.sqlite", echo=True)
